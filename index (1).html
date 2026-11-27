@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"><meta name="MSRAI_Label_dbd012e0-e600-4c3e-83b7-7d3141c15efc_AI_Disclosure" content="Made with AI">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>動く歴史年表 ― 日本と世界</title>
+<style>
+:root{
+  --bg:#ffffff; --fg:#1a1a1a; --card:#ffffff; --muted:#f4f4f5; --secondary:#ececee;
+  --muted-fg:#5f5f66; --border:#e4e4e7; --control-border:#8a8a90;
+  --primary:#a1232e; --primary-fg:#ffffff; --radius:8px;
+  --c-politics:#1d4ed8; --c-war:#b91c1c; --c-culture:#d97706; --c-society:#047857;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#121212; --fg:#f7f7f7; --card:#1e1e1e; --muted:#2c2c2c; --secondary:#262626;
+    --muted-fg:#a8a8ad; --border:rgba(255,255,255,.12); --control-border:#a8a8ad;
+    --primary:#e0605c; --primary-fg:#1c1010;
+    --c-politics:#60a5fa; --c-war:#f87171; --c-culture:#fbbf24; --c-society:#34d399;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic UI","Meiryo",system-ui,sans-serif;font-size:14px;line-height:1.5;min-height:100vh;display:flex;flex-direction:column}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.skip{position:absolute;left:-9999px;top:8px;z-index:100;background:var(--bg);padding:8px 12px;border-radius:6px;font-weight:600;color:var(--fg)}
+.skip:focus{left:12px}
+header.top{height:48px;display:flex;align-items:center;gap:8px;padding:0 16px;border-bottom:1px solid var(--border);background:var(--card);flex-shrink:0}
+header.top svg{width:20px;height:20px;color:var(--primary)}
+header.top .name{font-size:16px;font-weight:600;letter-spacing:-.01em}
+header.top .sub{font-size:13px;color:var(--muted-fg);margin-left:4px}
+main{flex:1;display:flex;flex-direction:column;gap:12px;padding:16px}
+.controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
+.group{display:flex;align-items:center;gap:6px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:36px;padding:0 14px;border-radius:6px;border:1px solid transparent;font-size:14px;font-weight:500;cursor:pointer;white-space:nowrap}
+.btn svg{width:16px;height:16px;flex-shrink:0}
+.btn-primary{background:var(--primary);color:var(--primary-fg);min-width:112px}
+.btn-primary:hover{filter:brightness(1.08)}
+.btn-outline{background:var(--bg);border-color:var(--control-border);width:36px;padding:0}
+.btn-outline:hover{background:var(--muted)}
+.seg{display:flex;border:1px solid var(--border);border-radius:6px;padding:2px}
+.seg button{border:0;background:transparent;border-radius:4px;padding:4px 8px;font-size:12px;font-weight:500;cursor:pointer}
+.seg button:hover{background:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--primary);color:var(--primary-fg)}
+select{height:36px;width:176px;border:1px solid var(--control-border);border-radius:6px;background:var(--bg);color:var(--fg);padding:0 10px;font:inherit;cursor:pointer}
+input[type=range]{width:128px;accent-color:var(--primary)}
+.zoom svg{width:16px;height:16px;color:var(--muted-fg)}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{display:flex;align-items:center;gap:6px;border:1px solid var(--control-border);background:var(--card);border-radius:999px;padding:4px 10px;font-size:12px;font-weight:500;cursor:pointer}
+.chip[aria-pressed="false"]{border-style:dashed;border-color:var(--border);color:var(--muted-fg);text-decoration:line-through}
+.chip[aria-pressed="false"] .dot{background:var(--muted-fg)!important;opacity:.4}
+.dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;display:inline-block}
+.dot.politics{background:var(--c-politics)} .dot.war{background:var(--c-war)} .dot.culture{background:var(--c-culture)} .dot.society{background:var(--c-society)}
+.readout{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 24px;border-bottom:1px solid var(--border);padding-bottom:8px}
+.readout p{margin:0}
+.yearbig{font-size:24px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.yearbig small{margin-left:8px;font-size:14px;font-weight:500;color:var(--muted-fg)}
+.lbl{color:var(--muted-fg)} .val{font-weight:600}
+.note{margin-left:auto!important;font-size:12px;color:var(--muted-fg)}
+.timeline{position:relative;border:1px solid var(--border);border-radius:var(--radius);background:var(--card)}
+.scroller{position:relative;overflow-x:auto;overflow-y:hidden;cursor:grab}
+.scroller.dragging{cursor:grabbing}
+.canvas{position:relative;user-select:none;-webkit-user-select:none}
+.grid{position:absolute;top:0;width:1px;background:var(--border)}
+.grid.zero{background:color-mix(in srgb,var(--fg) 30%,transparent)}
+.era{position:absolute;display:flex;align-items:center;justify-content:center;overflow:hidden;border-left:1px solid var(--bg);border-right:1px solid var(--bg);padding:0 4px;font-size:12px;font-weight:600;white-space:nowrap;transition:background-color .2s,color .2s}
+.era.a{background:var(--secondary)} .era.b{background:var(--muted)}
+.era.cur{background:var(--primary);color:var(--primary-fg)}
+.axis{position:absolute;left:0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--muted)}
+.tick{position:absolute;top:4px;transform:translateX(-50%);font-size:11px;font-weight:500;font-variant-numeric:tabular-nums}
+.stem{position:absolute;width:1px;background:color-mix(in srgb,var(--fg) 25%,transparent)}
+.stem.sel{background:var(--fg)}
+.ev{position:absolute;display:flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--card);border-radius:999px;padding:0 10px 0 6px;font-size:12px;white-space:nowrap;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.06);transform-origin:left center;transition:transform .15s,box-shadow .15s}
+.ev:hover,.ev:focus-visible{z-index:20;box-shadow:0 4px 10px rgba(0,0,0,.15)}
+.ev .y{color:var(--muted-fg);font-variant-numeric:tabular-nums}
+.ev.near{z-index:10;transform:scale(1.1);border-color:var(--control-border);font-weight:600}
+.ev.sel{z-index:10;border-color:var(--fg);font-weight:700;box-shadow:0 0 0 2px var(--primary)}
+.playhead{position:absolute;top:0;bottom:0;left:50%;width:2px;transform:translateX(-50%);background:var(--primary);pointer-events:none}
+.playtag{position:absolute;top:0;left:50%;transform:translateX(-50%);background:var(--primary);color:var(--primary-fg);border-radius:0 0 6px 6px;padding:2px 8px;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;pointer-events:none}
+.lane-lbl{position:absolute;left:8px;background:color-mix(in srgb,var(--bg) 90%,transparent);border-radius:4px;padding:2px 8px;font-size:14px;font-weight:700;box-shadow:0 1px 2px rgba(0,0,0,.08);pointer-events:none}
+.panels{display:grid;gap:16px;grid-template-columns:1fr}
+@media (min-width:1024px){.panels{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,1fr)}}
+.panel{border:1px solid var(--border);border-radius:var(--radius);background:var(--card);padding:16px}
+.meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:14px}
+.meta b{font-variant-numeric:tabular-nums}
+.pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:999px;padding:2px 8px;font-size:12px;font-weight:500}
+.pill .dot{width:8px;height:8px}
+.dtitle{margin:8px 0 0;font-size:20px;font-weight:700;line-height:1.35}
+.dtext{margin:8px 0 0;line-height:1.7}
+.derash{margin:8px 0 0;font-size:12px;color:var(--muted-fg)}
+.subh{margin:16px 0 0;font-size:14px;font-weight:600}
+.empty{margin:8px 0 0;color:var(--muted-fg)}
+ul.rows{list-style:none;margin:6px 0 0;padding:0}
+ul.rows li{margin:2px 0}
+.row{display:flex;width:100%;align-items:center;gap:8px;border:0;background:transparent;border-radius:6px;padding:4px 8px;text-align:left;font-size:14px;cursor:pointer}
+.row:hover{background:var(--muted)}
+.row[aria-current="true"]{background:var(--muted);font-weight:600}
+.row .y{width:56px;flex-shrink:0;font-variant-numeric:tabular-nums}
+.row .t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.panel h2{display:flex;justify-content:space-between;align-items:baseline;margin:0;font-size:14px;font-weight:600}
+.panel h2 span{font-size:12px;font-weight:400;color:var(--muted-fg)}
+.list-scroll{max-height:256px;overflow-y:auto}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+@media (forced-colors: active){
+  .playhead,.playtag{background:Highlight;color:HighlightText}
+  .era.cur{background:Highlight;color:HighlightText}
+  .ev.sel{outline:3px solid Highlight}
+  .seg button[aria-pressed="true"]{background:Highlight;color:HighlightText}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#timeline">年表へ移動</a>
+<header class="top">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+  <span class="name">動く歴史年表</span><span class="sub">日本と世界</span>
+</header>
+<main>
+  <div class="controls">
+    <div class="group">
+      <button type="button" class="btn btn-primary" id="play" aria-pressed="false"></button>
+      <div class="seg" role="group" aria-label="再生の速さ" id="speeds"></div>
+      <button type="button" class="btn btn-outline" id="toStart" aria-label="最初（古代）へ">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" x2="5" y1="19" y2="5"/></svg>
+      </button>
+      <button type="button" class="btn btn-outline" id="toEnd" aria-label="最後（現代）へ">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" x2="19" y1="5" y2="19"/></svg>
+      </button>
+    </div>
+    <select id="jump" aria-label="時代へジャンプ"></select>
+    <div class="group zoom">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="8" x2="14" y1="11" y2="11"/></svg>
+      <input type="range" id="zoom" min="1" max="8" step="0.5" value="2.5" aria-label="拡大・縮小">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/><line x1="11" x2="11" y1="8" y2="14"/><line x1="8" x2="14" y1="11" y2="11"/></svg>
+    </div>
+    <div class="chips" role="group" aria-label="分野で絞り込み" id="cats"></div>
+  </div>
+
+  <div class="readout">
+    <p class="yearbig"><span id="ryear"></span><small id="rcent"></small></p>
+    <p><span class="lbl">日本 </span><span class="val" id="rjp"></span></p>
+    <p><span class="lbl">世界 </span><span class="val" id="rwd"></span></p>
+    <p class="note">縮尺は時代によって異なります（古い時代ほど圧縮）</p>
+  </div>
+
+  <section class="timeline" id="timeline" tabindex="-1" aria-label="日本と世界の年表">
+    <div class="scroller" id="scroller" tabindex="0" role="region">
+      <div class="canvas" id="canvas"></div>
+    </div>
+    <div class="playhead" aria-hidden="true"></div>
+    <div class="playtag" aria-hidden="true" id="playtag"></div>
+    <div class="lane-lbl" aria-hidden="true" style="top:8px">日本</div>
+    <div class="lane-lbl" aria-hidden="true" style="bottom:24px">世界</div>
+  </section>
+
+  <div class="panels">
+    <section class="panel" aria-labelledby="detail-heading">
+      <h2 id="detail-heading" class="sr-only">できごとの説明</h2>
+      <div id="detail" aria-live="polite" aria-atomic="true"></div>
+    </section>
+    <section class="panel" aria-labelledby="h-jp">
+      <h2 id="h-jp">このころの日本<span id="cnt-jp"></span></h2>
+      <div id="list-jp"></div>
+    </section>
+    <section class="panel" aria-labelledby="h-wd">
+      <h2 id="h-wd">このころの世界<span id="cnt-wd"></span></h2>
+      <div id="list-wd"></div>
+    </section>
+  </div>
+</main>
+
+<script>
+"use strict";
+(function(){
+/* ================= データ ================= */
+function j(year, category, title, detail, approx){ return {id:"j"+year+"-"+title, year:year, lane:"japan", category:category, title:title, detail:detail, approx:!!approx}; }
+function w(year, category, title, detail, approx){ return {id:"w"+year+"-"+title, year:year, lane:"world", category:category, title:title, detail:detail, approx:!!approx}; }
+const JAPAN_ERAS = [
+  { name: "縄文時代", start: -3000, end: -400 },
+  { name: "弥生時代", start: -400, end: 250 },
+  { name: "古墳時代", start: 250, end: 592 },
+  { name: "飛鳥時代", start: 592, end: 710 },
+  { name: "奈良時代", start: 710, end: 794 },
+  { name: "平安時代", start: 794, end: 1185 },
+  { name: "鎌倉時代", start: 1185, end: 1333 },
+  { name: "建武の新政", start: 1333, end: 1336 },
+  { name: "室町時代", start: 1336, end: 1573 },
+  { name: "安土桃山時代", start: 1573, end: 1603 },
+  { name: "江戸時代", start: 1603, end: 1868 },
+  { name: "明治", start: 1868, end: 1912 },
+  { name: "大正", start: 1912, end: 1926 },
+  { name: "昭和", start: 1926, end: 1989 },
+  { name: "平成", start: 1989, end: 2019 },
+  { name: "令和", start: 2019, end: 2025 },
+];
+const WORLD_ERAS = [
+  { name: "古代", start: -3000, end: 476 },
+  { name: "中世", start: 476, end: 1453 },
+  { name: "近世", start: 1453, end: 1789 },
+  { name: "近代", start: 1789, end: 1945 },
+  { name: "現代", start: 1945, end: 2025 },
+];
+const EVENTS = [
+  // ---- 日本 ----
+  j(-400, "society", "稲作が広まる", "大陸から伝わった稲作が西日本から広がり、ムラができ、貧富や身分の差が生まれた。弥生土器や青銅器・鉄器も使われた。", true),
+  j(57, "war", "奴国王が金印を受ける", "倭の奴国の王が後漢に使いを送り、皇帝から金印を授かった。志賀島（福岡県）で見つかった金印がこれとされる。"),
+  j(239, "war", "卑弥呼が魏に使い", "邪馬台国の女王卑弥呼が魏に使いを送り、「親魏倭王」の称号と金印を授かったと『魏志』倭人伝に記される。"),
+  j(538, "culture", "仏教が伝わる", "百済から仏像や経典が伝えられた（552年とする説もある）。仏教の受け入れをめぐり蘇我氏と物部氏が対立した。"),
+  j(593, "politics", "聖徳太子が政治に参加", "聖徳太子（厩戸皇子）が推古天皇を助けて、蘇我馬子とともに天皇中心の政治をめざした。"),
+  j(604, "politics", "十七条の憲法", "聖徳太子が役人の心構えを示した。前年には冠位十二階を定め、才能ある人を役人に取り立てた。"),
+  j(607, "war", "遣隋使を送る", "小野妹子らを隋に派遣し、対等な国交を求めるとともに、進んだ制度や文化を取り入れようとした。"),
+  j(645, "politics", "大化の改新", "中大兄皇子と中臣鎌足が蘇我氏を倒し、土地と人民を国家のものとする公地公民などの改革を進めた。"),
+  j(701, "politics", "大宝律令", "唐の律令にならった法律が完成し、天皇を中心とする律令国家のしくみが整った。"),
+  j(710, "politics", "平城京に都を移す", "唐の長安にならった都・平城京（奈良）に都が移され、奈良時代が始まった。"),
+  j(743, "society", "墾田永年私財法", "新しく開墾した土地の永久の私有を認めた。貴族や寺社の私有地（のちの荘園）が広がるきっかけとなった。"),
+  j(752, "culture", "東大寺の大仏完成", "聖武天皇が仏教の力で国を守ろうと造らせた大仏の開眼供養が行われた。天平文化が栄えた。"),
+  j(794, "politics", "平安京に都を移す", "桓武天皇が都を平安京（京都）に移し、政治の立て直しを図った。平安時代が始まった。"),
+  j(894, "war", "遣唐使の停止", "菅原道真の提案で遣唐使が停止された。その後、かな文字など日本風の国風文化が栄えた。"),
+  j(1016, "politics", "藤原道長が摂政に", "藤原氏は娘を天皇のきさきにして摂政・関白の地位につく摂関政治を行い、道長・頼通のころ全盛期を迎えた。"),
+  j(1086, "politics", "院政が始まる", "白河天皇が位をゆずって上皇となった後も政治を行った。院政は武士が力をのばすきっかけにもなった。"),
+  j(1167, "politics", "平清盛が太政大臣に", "平清盛が武士として初めて太政大臣となり、日宋貿易にも力を入れた。"),
+  j(1185, "war", "壇ノ浦の戦い", "源義経らが平氏をほろぼした。源頼朝は国ごとに守護、荘園などに地頭を置き、鎌倉幕府の基礎を固めた。"),
+  j(1192, "politics", "源頼朝が征夷大将軍に", "源頼朝が朝廷から征夷大将軍に任命された。将軍と御家人は御恩と奉公の関係で結ばれた。"),
+  j(1221, "war", "承久の乱", "後鳥羽上皇が幕府を倒そうと兵を挙げたが敗れた。幕府は京都に六波羅探題を置き、支配を西日本にも広げた。"),
+  j(1232, "politics", "御成敗式目", "執権北条泰時が、武士の慣習をもとに裁判の基準となる武士の法律を定めた。"),
+  j(1274, "war", "元寇（文永の役）", "元の大軍が九州北部に攻めてきた。1281年の弘安の役とあわせて元寇とよぶ。御家人の生活が苦しくなった。"),
+  j(1333, "politics", "鎌倉幕府がほろびる", "後醍醐天皇の呼びかけに足利尊氏らが応じ、鎌倉幕府がほろびた。翌年、建武の新政が始まった。"),
+  j(1338, "politics", "足利尊氏が征夷大将軍に", "足利尊氏が京都に幕府を開いた。朝廷は南朝と北朝に分かれて争った（南北朝時代）。"),
+  j(1392, "politics", "南北朝の統一", "3代将軍足利義満が南北朝を統一した。義満は京都の室町に「花の御所」を建てた。"),
+  j(1404, "war", "日明貿易が始まる", "足利義満が明と貿易を始めた。正式な貿易船に勘合を持たせたので勘合貿易ともいう。"),
+  j(1467, "war", "応仁の乱", "将軍のあとつぎ問題などから京都で11年続いた戦乱。この後、下剋上の風潮が広がり戦国時代となった。"),
+  j(1543, "society", "鉄砲が伝わる", "種子島に流れ着いたポルトガル人によって鉄砲が伝えられ、戦い方や城のつくりが変わった。"),
+  j(1549, "culture", "キリスト教が伝わる", "イエズス会のフランシスコ・ザビエルが鹿児島に来て、キリスト教を伝えた。"),
+  j(1573, "politics", "室町幕府がほろびる", "織田信長が将軍足利義昭を京都から追放し、室町幕府がほろびた。"),
+  j(1582, "politics", "本能寺の変・太閤検地", "織田信長が家臣の明智光秀に攻められ自害した。この年から豊臣秀吉が太閤検地を始めた。"),
+  j(1588, "society", "刀狩令", "豊臣秀吉が百姓から刀や鉄砲を取り上げた。検地とあわせて兵農分離が進んだ。"),
+  j(1590, "politics", "豊臣秀吉の全国統一", "小田原の北条氏をほろぼし、豊臣秀吉が全国統一を果たした。"),
+  j(1600, "war", "関ヶ原の戦い", "徳川家康が石田三成らを破り、全国支配の実権をにぎった。「天下分け目の戦い」とよばれる。"),
+  j(1603, "politics", "江戸幕府を開く", "徳川家康が征夷大将軍となり、江戸に幕府を開いた。約260年続く江戸時代の始まり。"),
+  j(1635, "politics", "参勤交代の制度化", "3代将軍徳川家光が武家諸法度で、大名に1年おきに江戸と領地を往復させる参勤交代を定めた。"),
+  j(1637, "war", "島原・天草一揆", "キリスト教徒への弾圧と重い年貢に苦しんだ人々が、天草四郎を中心に一揆を起こした。"),
+  j(1641, "war", "鎖国の体制が固まる", "オランダ商館を長崎の出島に移し、貿易をオランダと中国に限った。いわゆる鎖国の体制が固まった。"),
+  j(1716, "politics", "享保の改革", "8代将軍徳川吉宗が、公事方御定書・目安箱・上げ米の制などで幕府の財政を立て直そうとした。"),
+  j(1787, "politics", "寛政の改革", "老中松平定信が、ききんに備えた米のたくわえや、旗本・御家人の借金帳消しなどを行った。"),
+  j(1841, "politics", "天保の改革", "老中水野忠邦が倹約令や株仲間の解散などを行ったが、反対が強く失敗に終わった。"),
+  j(1853, "war", "ペリー来航", "アメリカのペリーが4隻の軍艦を率いて浦賀に来航し、開国を求めた。翌1854年に日米和親条約を結んだ。"),
+  j(1858, "war", "日米修好通商条約", "函館・横浜・長崎などを開港して貿易を始めた。領事裁判権を認め、関税自主権がない不平等条約だった。"),
+  j(1867, "politics", "大政奉還", "15代将軍徳川慶喜が政権を朝廷に返した。続いて王政復古の大号令が出され、江戸幕府は終わった。"),
+  j(1868, "politics", "明治維新・五箇条の御誓文", "新政府が政治の基本方針を示した。元号を明治と改め、江戸を東京とした。"),
+  j(1872, "society", "学制・鉄道開通", "6歳以上の男女すべてに教育を受けさせる学制が公布され、新橋・横浜間に鉄道が開通した。"),
+  j(1873, "society", "地租改正・徴兵令", "土地の価格（地価）の3％を現金で納める地租改正と、満20歳以上の男子に兵役を課す徴兵令が実施された。"),
+  j(1877, "war", "西南戦争", "西郷隆盛を中心とする鹿児島の士族が起こした最大の士族の反乱。政府軍が鎮圧した。"),
+  j(1889, "politics", "大日本帝国憲法", "天皇が国民に与える形で発布された。翌年、第1回帝国議会が開かれた。"),
+  j(1894, "war", "日清戦争", "朝鮮をめぐって清と戦い勝利した。下関条約で台湾などを得た。同じ年、領事裁判権の撤廃に成功した。"),
+  j(1904, "war", "日露戦争", "満州・韓国をめぐってロシアと戦った。翌年のポーツマス条約で韓国での優越権などを認めさせた。"),
+  j(1910, "war", "韓国併合", "日本は韓国を併合して植民地とし、朝鮮総督府を置いて支配した。"),
+  j(1923, "society", "関東大震災", "関東地方を大地震がおそい、東京・横浜を中心に大きな被害が出た。"),
+  j(1925, "politics", "普通選挙法・治安維持法", "満25歳以上の男子に選挙権が与えられた。同時に、社会主義などを取りしまる治安維持法が定められた。"),
+  j(1931, "war", "満州事変", "関東軍が南満州鉄道の線路を爆破し、満州の大部分を占領した。翌年、満州国がつくられた。"),
+  j(1937, "war", "日中戦争", "北京郊外の盧溝橋事件をきっかけに、日本と中国の全面戦争が始まった。"),
+  j(1941, "war", "太平洋戦争", "日本はハワイの真珠湾やマレー半島を攻撃し、アメリカ・イギリスなどとの戦争を始めた。"),
+  j(1945, "war", "原爆投下・敗戦", "広島（8月6日）と長崎（8月9日）に原子爆弾が投下された。日本はポツダム宣言を受け入れて降伏した。"),
+  j(1946, "politics", "日本国憲法の公布", "国民主権・基本的人権の尊重・平和主義を三つの基本原理とする。1947年5月3日に施行された。"),
+  j(1951, "war", "サンフランシスコ平和条約", "日本は48か国と平和条約を結び、翌年独立を回復した。同時に日米安全保障条約を結んだ。"),
+  j(1956, "war", "国際連合に加盟", "日ソ共同宣言でソ連と国交を回復し、同じ年に国際連合への加盟が実現した。"),
+  j(1964, "society", "東京オリンピック", "アジアで初めてのオリンピックが開かれ、東海道新幹線も開業した。高度経済成長の象徴とされる。"),
+  j(1972, "war", "沖縄返還・日中国交正常化", "アメリカの統治下にあった沖縄が日本に返還された。同じ年、中国との国交が正常化した。"),
+  j(1995, "society", "阪神・淡路大震災", "兵庫県南部を中心に大地震がおこった。多くのボランティアが活動し、「ボランティア元年」とよばれた。"),
+  j(2011, "society", "東日本大震災", "東北地方の太平洋沖で巨大地震と津波が発生し、原子力発電所の事故もおこった。"),
+
+  // ---- 世界 ----
+  w(-3000, "society", "エジプト・メソポタミア文明", "大河の流域で農耕が発達し、エジプトでは象形文字やピラミッド、メソポタミアではくさび形文字が生まれた。", true),
+  w(-2500, "society", "インダス文明", "インダス川流域にモヘンジョ・ダロなどの計画的な都市がつくられた。", true),
+  w(-1750, "politics", "ハンムラビ法典", "バビロニアのハンムラビ王が定めた法典。「目には目を、歯には歯を」の考え方で知られる。", true),
+  w(-1600, "politics", "中国で殷がおこる", "黄河流域におこった殷では、占いに使った甲骨文字が生まれ、青銅器がつくられた。", true),
+  w(-500, "culture", "孔子・シャカの教え", "中国で孔子が儒教（儒学）のもととなる教えを説き、インドではシャカ（釈迦）が仏教を開いた。", true),
+  w(-450, "politics", "アテネの民主政", "古代ギリシャのポリス（都市国家）アテネで、成人男性市民が民会で話し合う民主政が行われた。", true),
+  w(-334, "war", "アレクサンドロス大王の東方遠征", "マケドニアの大王がペルシャを征服しインダス川まで遠征した。ギリシャと東方の文化がとけあうヘレニズムが生まれた。"),
+  w(-221, "politics", "秦の始皇帝が中国統一", "始皇帝は文字・貨幣・ものさしなどを統一し、北方の遊牧民に備えて万里の長城を整備した。"),
+  w(-202, "politics", "漢がおこる", "漢は約400年続き、シルクロードを通じて西方と交易した。紙の改良も行われた。"),
+  w(-27, "politics", "ローマ帝国（帝政）が始まる", "共和政だったローマで皇帝による政治が始まった。地中海をとり囲む大帝国となった。"),
+  w(30, "culture", "キリスト教がおこる", "パレスチナでイエスが神の愛を説き、その教えがキリスト教として広まった。のちにローマ帝国の国教となる。", true),
+  w(395, "politics", "ローマ帝国の東西分裂", "ローマ帝国が東西に分かれた。西ローマ帝国は476年にほろび、東ローマ（ビザンツ）帝国は1453年まで続いた。"),
+  w(476, "war", "西ローマ帝国がほろびる", "ゲルマン人の移動などで西ローマ帝国がほろびた。ヨーロッパの中世の始まりとされる。"),
+  w(589, "politics", "隋が中国を統一", "約300年ぶりに中国を統一した。律令や科挙（試験による役人の採用）を始めた。"),
+  w(610, "culture", "イスラム教がおこる", "アラビア半島でムハンマドが唯一神アッラーの教えを説き、イスラム教を開いた。", true),
+  w(618, "politics", "唐がおこる", "唐は律令にもとづく国家のしくみを整え、都の長安は国際都市として栄えた。日本は遣唐使を送った。"),
+  w(800, "politics", "カール大帝の戴冠", "フランク王国のカール大帝がローマ教皇から皇帝の冠を受けた。西ヨーロッパのまとまりのもとになった。"),
+  w(960, "politics", "宋がおこる", "宋では商業が発達し、火薬・羅針盤・活版印刷などの技術が発展した。"),
+  w(1096, "war", "十字軍の遠征", "ローマ教皇の呼びかけで、聖地エルサレムをイスラム勢力から取り戻そうと十字軍が送られた（約200年間）。"),
+  w(1206, "politics", "チンギス・ハンがモンゴル統一", "モンゴル帝国はユーラシア大陸の東西にまたがる大帝国となった。"),
+  w(1271, "politics", "元がおこる", "フビライ・ハンが国号を元とし、大都（北京）を都とした。日本にも服属を求めた。"),
+  w(1368, "politics", "明がおこる", "漢民族の明が元を北に追いやった。倭寇の取りしまりを日本に求めた。"),
+  w(1453, "war", "ビザンツ帝国がほろびる", "オスマン帝国によって東ローマ（ビザンツ）帝国がほろぼされた。"),
+  w(1492, "society", "コロンブスがアメリカ大陸近くに到達", "スペインの援助を受けたコロンブスが西インド諸島に到達した。大航海時代の代表的なできごと。"),
+  w(1498, "society", "バスコ・ダ・ガマのインド航路", "ポルトガルのバスコ・ダ・ガマがアフリカ南端を回ってインドに到達し、香辛料を直接手に入れる航路を開いた。"),
+  w(1517, "culture", "ルターの宗教改革", "ドイツのルターが免罪符の販売を批判し、聖書を信仰のよりどころとするプロテスタントが生まれた。"),
+  w(1522, "society", "マゼラン一行の世界一周", "マゼランの船隊が史上初の世界一周を達成し、地球が丸いことを証明した（マゼラン自身は途中で死亡）。"),
+  w(1600, "society", "イギリス東インド会社", "アジアとの貿易を行うため、イギリスが東インド会社を設立した。"),
+  w(1642, "politics", "ピューリタン革命", "イギリスで国王と議会が対立し、クロムウェルの率いる議会派が勝利して共和政を始めた。"),
+  w(1688, "politics", "名誉革命", "イギリスで国王を追放し、翌年、議会の権利を確認する権利章典が定められた。立憲君主制のもととなる。"),
+  w(1760, "society", "産業革命が始まる", "イギリスで蒸気機関などの機械が使われるようになり、工場で大量生産が行われるようになった。", true),
+  w(1776, "politics", "アメリカ独立宣言", "イギリスの植民地だったアメリカが独立を宣言した。人は生まれながらに平等であることを主張した。"),
+  w(1789, "politics", "フランス革命・人権宣言", "パリの民衆がバスチーユ牢獄を襲撃して革命が始まった。自由・平等などを唱える人権宣言が出された。"),
+  w(1804, "politics", "ナポレオンが皇帝に", "ナポレオンが皇帝となり、ヨーロッパの大部分を支配した。ナポレオン法典を定めた。"),
+  w(1840, "war", "アヘン戦争", "イギリスと清の戦争。清は敗れて南京条約を結び、香港をイギリスにゆずった。日本の幕府も衝撃を受けた。"),
+  w(1857, "war", "インド大反乱", "イギリスの支配に対してインドの人々が反乱を起こした。鎮圧後、インドはイギリスが直接支配する植民地となった。"),
+  w(1861, "war", "アメリカ南北戦争", "奴隷制などをめぐって北部と南部が戦った。リンカン大統領が奴隷解放宣言を出し、北部が勝利した。"),
+  w(1871, "politics", "ドイツ帝国の成立", "プロイセンのビスマルクの指導で、ドイツが統一された。"),
+  w(1911, "politics", "辛亥革命", "孫文らの革命で清がたおれ、翌年アジアで最初の共和国である中華民国が成立した。"),
+  w(1914, "war", "第一次世界大戦", "サラエボ事件をきっかけにヨーロッパを中心とした大戦が始まった。日本も日英同盟を理由に参戦した。"),
+  w(1917, "politics", "ロシア革命", "レーニンの指導で史上初の社会主義政府ができた。1922年にソビエト社会主義共和国連邦（ソ連）が成立した。"),
+  w(1919, "war", "ベルサイユ条約", "第一次世界大戦の講和条約。同じ年、朝鮮で三・一独立運動、中国で五・四運動がおこった。"),
+  w(1920, "war", "国際連盟の発足", "アメリカのウィルソン大統領の提案で、世界平和をめざす初めての国際機関がつくられた。"),
+  w(1929, "society", "世界恐慌", "ニューヨークの株価大暴落から世界中に不景気が広がった。アメリカはニューディール政策で対応した。"),
+  w(1939, "war", "第二次世界大戦", "ドイツのポーランド侵攻をきっかけに始まった。1945年に連合国の勝利で終わった。"),
+  w(1945, "war", "国際連合の発足", "第二次世界大戦の反省から、世界の平和と安全を守るため国際連合がつくられた。"),
+  w(1949, "politics", "中華人民共和国の成立", "毛沢東を主席とする中華人民共和国が成立した。"),
+  w(1950, "war", "朝鮮戦争", "冷戦のもとで北朝鮮と韓国の間に戦争がおこった。日本では特需景気がおこった。"),
+  w(1962, "war", "キューバ危機", "キューバのミサイル基地をめぐってアメリカとソ連が対立し、核戦争の危機が高まった。"),
+  w(1965, "war", "ベトナム戦争の激化", "アメリカが北ベトナムへの爆撃を始め、戦争が激化した。世界各地で反戦運動がおこった。"),
+  w(1989, "politics", "ベルリンの壁崩壊・冷戦終結", "東西ドイツを分けていたベルリンの壁が取りこわされ、マルタ会談で冷戦の終結が宣言された。"),
+  w(1991, "politics", "ソ連の解体", "ソビエト連邦が解体し、ロシアなどの国々に分かれた。"),
+  w(1993, "politics", "EUの発足", "ヨーロッパの国々がヨーロッパ連合（EU）をつくり、のちに共通通貨ユーロを導入した。"),
+  w(2001, "war", "アメリカ同時多発テロ", "ニューヨークなどで同時多発テロがおこった。その後、アメリカはアフガニスタンを攻撃した。"),
+];
+
+
+var MIN_YEAR = -3000, MAX_YEAR = 2025;
+var CATEGORIES = [
+  {key:"politics", label:"政治"},
+  {key:"war", label:"戦争・外交"},
+  {key:"culture", label:"文化・宗教"},
+  {key:"society", label:"社会・経済"}
+];
+function catOf(k){ for (var i=0;i<CATEGORIES.length;i++) if (CATEGORIES[i].key===k) return CATEGORIES[i]; }
+
+/* 区分線形の時間スケール：古い時代ほど圧縮 */
+var KNOTS = [[-3000,0],[-1000,240],[0,420],[500,620],[1000,860],[1500,1140],[1800,1480],[1900,1760],[2025,2060]];
+var TOTAL_UNITS = KNOTS[KNOTS.length-1][1];
+function yearToUnit(year){
+  var y = Math.min(MAX_YEAR, Math.max(MIN_YEAR, year));
+  for (var i=0;i<KNOTS.length-1;i++){ var a=KNOTS[i], b=KNOTS[i+1];
+    if (y <= b[0]) return a[1] + (y-a[0])/(b[0]-a[0])*(b[1]-a[1]); }
+  return TOTAL_UNITS;
+}
+function unitToYear(unit){
+  var u = Math.min(TOTAL_UNITS, Math.max(0, unit));
+  for (var i=0;i<KNOTS.length-1;i++){ var a=KNOTS[i], b=KNOTS[i+1];
+    if (u <= b[1]) return a[0] + (u-a[1])/(b[1]-a[1])*(b[0]-a[0]); }
+  return MAX_YEAR;
+}
+function buildTicks(pxPerUnit){
+  var steps=[10,20,50,100,200,500,1000], set={};
+  for (var i=0;i<KNOTS.length-1;i++){ var a=KNOTS[i], b=KNOTS[i+1];
+    var pxPerYear = (b[1]-a[1])/(b[0]-a[0])*pxPerUnit, step=1000;
+    for (var s=0;s<steps.length;s++) if (steps[s]*pxPerYear>=70){ step=steps[s]; break; }
+    for (var y=Math.ceil(a[0]/step)*step; y<=b[0]; y+=step) set[y]=true;
+  }
+  return Object.keys(set).map(Number).sort(function(x,y){return x-y;});
+}
+function formatYear(year){ var y=Math.round(year); return y<0 ? "紀元前"+(-y)+"年" : y+"年"; }
+function shortYear(year){ var y=Math.round(year); return y<0 ? "前"+(-y) : ""+y; }
+function centuryLabel(year){ var y=Math.round(year);
+  if (y<0) return "紀元前"+(Math.floor((-y-1)/100)+1)+"世紀";
+  return (Math.floor((Math.max(1,y)-1)/100)+1)+"世紀"; }
+function eraAt(eras, year){
+  for (var i=0;i<eras.length;i++) if (year>=eras[i].start && year<eras[i].end) return eras[i];
+  return year>=MAX_YEAR ? eras[eras.length-1] : null;
+}
+
+/* ================= レイアウト定数 ================= */
+var ROW_H=28, MAX_ROWS=7, LANE_H=MAX_ROWS*ROW_H+12, BAND_H=34, AXIS_H=26;
+var TOTAL_H=LANE_H*2+BAND_H*2+AXIS_H, JP_BAND_TOP=LANE_H, AXIS_TOP=LANE_H+BAND_H, WD_BAND_TOP=AXIS_TOP+AXIS_H, WD_LANE_TOP=WD_BAND_TOP+BAND_H;
+var SPEEDS=[{key:"slow",label:"ゆっくり",px:60},{key:"normal",label:"ふつう",px:140},{key:"fast",label:"はやい",px:320}];
+
+/* ================= 状態 ================= */
+var state = { zoom:2.5, centerYear:1500, range:[1200,1800], playing:false, speed:"normal",
+  activeCats:CATEGORIES.map(function(c){return c.key;}), pickedId:null, viewW:1000 };
+var reducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+var $ = function(id){ return document.getElementById(id); };
+var scroller=$("scroller"), canvas=$("canvas");
+scroller.style.height = (TOTAL_H+14)+"px";
+
+function el(tag, cls, text){ var e=document.createElement(tag); if (cls) e.className=cls; if (text!=null) e.textContent=text; return e; }
+function pad(){ return state.viewW/2; }
+function xOf(year){ return pad() + yearToUnit(year)*state.zoom; }
+function visibleEvents(){ return EVENTS.filter(function(e){ return state.activeCats.indexOf(e.category)>=0; }); }
+
+function layoutLane(events){
+  var rowsEnd=[];
+  return events.slice().sort(function(a,b){return a.year-b.year;}).map(function(ev){
+    var x=xOf(ev.year), wdt=ev.title.length*12.5+shortYear(ev.year).length*7.5+34, row=-1;
+    for (var i=0;i<rowsEnd.length;i++) if (rowsEnd[i]+6<x){ row=i; break; }
+    if (row===-1){
+      if (rowsEnd.length<MAX_ROWS){ row=rowsEnd.length; rowsEnd.push(0); }
+      else { var m=Math.min.apply(null,rowsEnd); row=rowsEnd.indexOf(m); }
+    }
+    rowsEnd[row]=x+wdt;
+    return {ev:ev, x:x, row:row};
+  });
+}
+
+/* ================= 年表キャンバスの描画 ================= */
+var markerEls = {}; // id -> {btn, stem, x}
+var eraEls = {japan:[], world:[]};
+
+function renderCanvas(){
+  var contentW = TOTAL_UNITS*state.zoom + pad()*2;
+  canvas.style.width = contentW+"px"; canvas.style.height = TOTAL_H+"px";
+  canvas.textContent = "";
+  markerEls = {}; eraEls = {japan:[], world:[]};
+  var ticks = buildTicks(state.zoom);
+  ticks.forEach(function(t){
+    var g=el("div","grid"+(t===0?" zero":"")); g.setAttribute("aria-hidden","true");
+    g.style.left=xOf(t)+"px"; g.style.height=TOTAL_H+"px"; canvas.appendChild(g);
+  });
+  drawEras(JAPAN_ERAS, JP_BAND_TOP, "japan");
+  drawEras(WORLD_ERAS, WD_BAND_TOP, "world");
+  var axis=el("div","axis"); axis.setAttribute("aria-hidden","true");
+  axis.style.top=AXIS_TOP+"px"; axis.style.height=AXIS_H+"px"; axis.style.width=contentW+"px";
+  ticks.forEach(function(t){ var s=el("span","tick",shortYear(t)); s.style.left=xOf(t)+"px"; axis.appendChild(s); });
+  canvas.appendChild(axis);
+  var vis = visibleEvents();
+  layoutLane(vis.filter(function(e){return e.lane==="japan";})).forEach(function(p){ drawMarker(p,"japan"); });
+  layoutLane(vis.filter(function(e){return e.lane==="world";})).forEach(function(p){ drawMarker(p,"world"); });
+}
+function drawEras(eras, top, lane){
+  eras.forEach(function(e,i){
+    var left=xOf(e.start), width=xOf(e.end)-left;
+    var d=el("div","era "+(i%2?"b":"a"), width>28?e.name:"");
+    d.setAttribute("aria-hidden","true");
+    d.title = e.name+"（"+formatYear(e.start)+"〜"+(e.end>=MAX_YEAR?"":formatYear(e.end))+"）";
+    d.style.left=left+"px"; d.style.width=width+"px"; d.style.top=(top+3)+"px"; d.style.height=(BAND_H-6)+"px";
+    d.dataset.name=e.name;
+    canvas.appendChild(d); eraEls[lane].push(d);
+  });
+}
+function drawMarker(p, lane){
+  var cat=catOf(p.ev.category);
+  var labelTop = lane==="japan" ? LANE_H-(p.row+1)*ROW_H : WD_LANE_TOP+6+p.row*ROW_H;
+  var stemTop = lane==="japan" ? labelTop+ROW_H-4 : WD_BAND_TOP+BAND_H-3;
+  var stemH = lane==="japan" ? JP_BAND_TOP+3-stemTop : labelTop+4-stemTop;
+  var stem=el("div","stem"); stem.setAttribute("aria-hidden","true");
+  stem.style.left=p.x+"px"; stem.style.top=stemTop+"px"; stem.style.height=Math.max(0,stemH)+"px";
+  var b=el("button","ev"); b.type="button";
+  b.setAttribute("aria-label", formatYear(p.ev.year)+(p.ev.approx?"ごろ":"")+" "+(lane==="japan"?"日本":"世界")+" "+cat.label+"："+p.ev.title);
+  b.style.left=(p.x-7)+"px"; b.style.top=labelTop+"px"; b.style.height=(ROW_H-6)+"px";
+  var dot=el("span","dot "+p.ev.category); dot.setAttribute("aria-hidden","true");
+  b.appendChild(dot); b.appendChild(el("span","y",shortYear(p.ev.year))); b.appendChild(el("span",null,p.ev.title));
+  b.addEventListener("click", function(){ pick(p.ev); });
+  canvas.appendChild(stem); canvas.appendChild(b);
+  markerEls[p.ev.id] = {btn:b, stem:stem, x:p.x};
+}
+
+/* ================= 現在位置に応じた更新 ================= */
+function nearestEvent(){
+  var best=null, bestD=Infinity, cu=yearToUnit(state.centerYear);
+  visibleEvents().forEach(function(e){ var d=Math.abs(yearToUnit(e.year)-cu); if (d<bestD){ bestD=d; best=e; } });
+  return best;
+}
+function selectedEvent(){
+  if (state.pickedId){ for (var i=0;i<EVENTS.length;i++) if (EVENTS[i].id===state.pickedId) return EVENTS[i]; }
+  return nearestEvent();
+}
+var lastDetailId=null, lastRangeKey=null;
+function updateDynamic(){
+  var cy=state.centerYear, jp=eraAt(JAPAN_ERAS,cy), wd=eraAt(WORLD_ERAS,cy);
+  $("ryear").textContent=formatYear(cy); $("rcent").textContent=centuryLabel(cy);
+  $("rjp").textContent=jp?jp.name:"—"; $("rwd").textContent=wd?wd.name:"—";
+  $("playtag").textContent=shortYear(cy);
+  scroller.setAttribute("aria-label","年表の表示位置 "+formatYear(cy)+"。左右の矢印キーで時代を移動");
+  eraEls.japan.forEach(function(d){ d.classList.toggle("cur", !!jp && d.dataset.name===jp.name); });
+  eraEls.world.forEach(function(d){ d.classList.toggle("cur", !!wd && d.dataset.name===wd.name); });
+  var sel=selectedEvent(), cx=xOf(cy);
+  Object.keys(markerEls).forEach(function(id){
+    var m=markerEls[id], isSel = sel && sel.id===id;
+    m.btn.classList.toggle("sel", !!isSel);
+    m.btn.classList.toggle("near", !isSel && Math.abs(m.x-cx)<30);
+    m.btn.setAttribute("aria-pressed", isSel?"true":"false");
+    m.stem.classList.toggle("sel", !!isSel);
+  });
+  $("detail").setAttribute("aria-live", state.playing?"off":"polite");
+  var selId = sel?sel.id:null;
+  if (selId!==lastDetailId){ lastDetailId=selId; renderDetail(sel); }
+  var rk = Math.round(state.range[0])+":"+Math.round(state.range[1])+":"+selId+":"+state.activeCats.join(",");
+  if (rk!==lastRangeKey){ lastRangeKey=rk; renderLists(selId); }
+}
+
+function eventRow(ev, selected){
+  var b=el("button","row"); b.type="button";
+  if (selected) b.setAttribute("aria-current","true");
+  var d=el("span","dot "+ev.category); d.setAttribute("aria-hidden","true");
+  b.appendChild(d); b.appendChild(el("span","y",shortYear(ev.year))); b.appendChild(el("span","t",ev.title));
+  b.appendChild(el("span","sr-only",catOf(ev.category).label));
+  b.addEventListener("click", function(){ pick(ev); });
+  return b;
+}
+function renderDetail(sel){
+  var box=$("detail"); box.textContent="";
+  if (!sel){ box.appendChild(el("p","empty","表示できるできごとがありません")); return; }
+  var cat=catOf(sel.category), meta=el("div","meta");
+  meta.appendChild(el("b",null,formatYear(sel.year)+(sel.approx?"ごろ":"")));
+  meta.appendChild(el("span","pill",sel.lane==="japan"?"日本":"世界"));
+  var cp=el("span","pill"); var cd=el("span","dot "+sel.category); cd.setAttribute("aria-hidden","true");
+  cp.appendChild(cd); cp.appendChild(document.createTextNode(cat.label)); meta.appendChild(cp);
+  box.appendChild(meta);
+  box.appendChild(el("h3","dtitle",sel.title));
+  box.appendChild(el("p","dtext",sel.detail));
+  var je=eraAt(JAPAN_ERAS,sel.year), we=eraAt(WORLD_ERAS,sel.year);
+  box.appendChild(el("p","derash","日本："+(je?je.name:"—")+" ／ 世界："+(we?we.name:"—")));
+  box.appendChild(el("h4","subh","同じころの"+(sel.lane==="japan"?"世界":"日本")+"（前後30年）"));
+  var other = sel.lane==="japan"?"world":"japan";
+  var same = EVENTS.filter(function(e){ return e.lane===other && Math.abs(e.year-sel.year)<=30; })
+    .sort(function(a,b){ return Math.abs(a.year-sel.year)-Math.abs(b.year-sel.year); }).slice(0,4);
+  if (same.length){ var ul=el("ul","rows"); same.forEach(function(e){ var li=el("li"); li.appendChild(eventRow(e,false)); ul.appendChild(li); }); box.appendChild(ul); }
+  else box.appendChild(el("p","empty","この年表にはありません"));
+}
+function renderLists(selId){
+  ["japan","world"].forEach(function(lane){
+    var key = lane==="japan"?"jp":"wd";
+    var evs = visibleEvents().filter(function(e){ return e.lane===lane && e.year>=state.range[0] && e.year<=state.range[1]; })
+      .sort(function(a,b){return a.year-b.year;});
+    $("cnt-"+key).textContent = evs.length+"件";
+    var box=$("list-"+key), prevScroll = box.firstChild ? box.firstChild.scrollTop : 0; box.textContent="";
+    if (!evs.length){ box.appendChild(el("p","empty","表示範囲にできごとはありません")); return; }
+    var ul=el("ul","rows list-scroll");
+    evs.forEach(function(e){ var li=el("li"); li.appendChild(eventRow(e, e.id===selId)); ul.appendChild(li); });
+    box.appendChild(ul); ul.scrollTop = prevScroll;
+  });
+}
+
+/* ================= スクロールと年の同期 ================= */
+function readScroll(){
+  var z=state.zoom, p=pad();
+  state.centerYear = unitToYear(scroller.scrollLeft/z);
+  state.range = [unitToYear((scroller.scrollLeft-p)/z), unitToYear((scroller.scrollLeft+scroller.clientWidth-p)/z)];
+  updateDynamic();
+}
+function scrollToYear(year, smooth){
+  scroller.scrollTo({left: yearToUnit(year)*state.zoom, behavior: (smooth!==false && !reducedMotion) ? "smooth" : "auto"});
+}
+function relayout(){
+  var keep = state.centerYear;
+  state.viewW = scroller.clientWidth;
+  renderCanvas();
+  scroller.scrollLeft = yearToUnit(keep)*state.zoom;
+  lastDetailId=null; lastRangeKey=null;
+  readScroll();
+
+}
+var rafScroll=0;
+scroller.addEventListener("scroll", function(){ cancelAnimationFrame(rafScroll); rafScroll=requestAnimationFrame(readScroll); }, {passive:true});
+if (window.ResizeObserver){ new ResizeObserver(function(){ if (scroller.clientWidth!==state.viewW) relayout(); }).observe(scroller); }
+else window.addEventListener("resize", relayout);
+
+/* キーボード操作 */
+scroller.addEventListener("keydown", function(e){
+  var step = e.shiftKey ? 400 : 120;
+  if (e.key==="ArrowRight"){ e.preventDefault(); stopPlay(); scroller.scrollBy({left:step, behavior:reducedMotion?"auto":"smooth"}); }
+  else if (e.key==="ArrowLeft"){ e.preventDefault(); stopPlay(); scroller.scrollBy({left:-step, behavior:reducedMotion?"auto":"smooth"}); }
+  else if (e.key==="Home"){ e.preventDefault(); stopPlay(); state.pickedId=null; scrollToYear(MIN_YEAR); }
+  else if (e.key==="End"){ e.preventDefault(); stopPlay(); state.pickedId=null; scrollToYear(MAX_YEAR); }
+});
+
+/* マウスドラッグで移動 */
+var drag=null;
+scroller.addEventListener("pointerdown", function(e){
+  if (state.playing) stopPlay();
+  if (e.pointerType!=="mouse" || e.target.closest("button")) return;
+  drag={x:e.clientX, left:scroller.scrollLeft}; scroller.setPointerCapture(e.pointerId); scroller.classList.add("dragging");
+});
+scroller.addEventListener("pointermove", function(e){ if (drag) scroller.scrollLeft = drag.left-(e.clientX-drag.x); });
+function endDrag(){ drag=null; scroller.classList.remove("dragging"); }
+scroller.addEventListener("pointerup", endDrag); scroller.addEventListener("pointercancel", endDrag);
+scroller.addEventListener("wheel", function(){ if (state.playing) stopPlay(); }, {passive:true});
+
+/* ================= 自動再生 ================= */
+var playRaf=0;
+var ICON_PLAY='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"/></svg>';
+var ICON_PAUSE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/></svg>';
+function renderPlayBtn(){ var b=$("play"); b.innerHTML = (state.playing?ICON_PAUSE:ICON_PLAY)+"<span>"+(state.playing?"一時停止":"再生")+"</span>"; b.setAttribute("aria-pressed", state.playing?"true":"false"); }
+function startPlay(){
+  if (state.centerYear >= MAX_YEAR-1) scroller.scrollLeft = 0;
+  state.pickedId=null; state.playing=true; renderPlayBtn(); lastDetailId=null;
+  var last=performance.now(), pos=scroller.scrollLeft;
+  var px = SPEEDS.filter(function(s){return s.key===state.speed;})[0].px;
+  function step(now){
+    if (!state.playing) return;
+    var dt=Math.min(0.1,(now-last)/1000); last=now;
+    px = SPEEDS.filter(function(s){return s.key===state.speed;})[0].px;
+    pos += px*dt;
+    var max = scroller.scrollWidth-scroller.clientWidth;
+    if (pos>=max){ scroller.scrollLeft=max; stopPlay(); return; }
+    scroller.scrollLeft = pos;
+    playRaf=requestAnimationFrame(step);
+  }
+  playRaf=requestAnimationFrame(step);
+}
+function stopPlay(){ if (!state.playing) return; state.playing=false; cancelAnimationFrame(playRaf); renderPlayBtn(); updateDynamic(); }
+$("play").addEventListener("click", function(){ state.playing ? stopPlay() : startPlay(); });
+$("toStart").addEventListener("click", function(){ stopPlay(); state.pickedId=null; scrollToYear(MIN_YEAR); });
+$("toEnd").addEventListener("click", function(){ stopPlay(); state.pickedId=null; scrollToYear(MAX_YEAR); });
+
+/* 速さ */
+function renderSpeeds(){
+  var box=$("speeds"); box.textContent="";
+  SPEEDS.forEach(function(s){
+    var b=el("button",null,s.label); b.type="button"; b.setAttribute("aria-pressed", state.speed===s.key?"true":"false");
+    b.addEventListener("click", function(){ state.speed=s.key; renderSpeeds(); });
+    box.appendChild(b);
+  });
+}
+
+/* 分野 */
+function renderCats(){
+  var box=$("cats"); box.textContent="";
+  CATEGORIES.forEach(function(c){
+    var on = state.activeCats.indexOf(c.key)>=0;
+    var b=el("button","chip"); b.type="button"; b.setAttribute("aria-pressed", on?"true":"false");
+    var d=el("span","dot "+c.key); d.setAttribute("aria-hidden","true");
+    b.appendChild(d); b.appendChild(document.createTextNode(c.label));
+    b.addEventListener("click", function(){
+      if (on){ if (state.activeCats.length>1) state.activeCats = state.activeCats.filter(function(k){return k!==c.key;}); }
+      else state.activeCats = state.activeCats.concat([c.key]);
+      if (state.pickedId){ var p=EVENTS.filter(function(e){return e.id===state.pickedId;})[0]; if (p && state.activeCats.indexOf(p.category)<0) state.pickedId=null; }
+      renderCats(); relayout();
+    });
+    box.appendChild(b);
+  });
+}
+
+/* 時代へジャンプ */
+(function(){
+  var s=$("jump");
+  var ph=el("option",null,"時代へジャンプ"); ph.value=""; s.appendChild(ph);
+  [["日本の時代","japan",JAPAN_ERAS],["世界の時代区分","world",WORLD_ERAS]].forEach(function(g){
+    var og=document.createElement("optgroup"); og.label=g[0];
+    g[2].forEach(function(e){ var o=el("option",null,e.name); o.value=g[1]+":"+e.name; og.appendChild(o); });
+    s.appendChild(og);
+  });
+  s.addEventListener("change", function(){
+    var v=s.value; if (!v) return;
+    var parts=v.split(":"), eras = parts[0]==="japan"?JAPAN_ERAS:WORLD_ERAS;
+    var era = eras.filter(function(e){return e.name===parts[1];})[0];
+    s.value="";
+    if (!era) return;
+    stopPlay(); state.pickedId=null;
+    scrollToYear(Math.min(era.end, era.start+Math.max(1,(era.end-era.start)*0.15)));
+  });
+})();
+
+/* 拡大・縮小 */
+$("zoom").addEventListener("input", function(e){ state.zoom = parseFloat(e.target.value); relayout(); });
+
+function pick(ev){
+  stopPlay(); state.pickedId=ev.id; lastDetailId=null; lastRangeKey=null;
+  scrollToYear(ev.year); updateDynamic();
+}
+
+/* ================= 初期化 ================= */
+renderPlayBtn(); renderSpeeds(); renderCats();
+relayout();
+})();
+</script>
+</body>
+</html>
